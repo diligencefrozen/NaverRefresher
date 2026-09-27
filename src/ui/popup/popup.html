@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Naver Focus</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="brand"><span class="mark">NF</span><div><strong>Naver Focus</strong><small id="host">네이버 개인화 필터</small></div></div>
+      <label class="switch master"><input id="enabled" type="checkbox"><span></span></label>
+    </header>
+
+    <section class="hero">
+      <div><small>현재 상태</small><strong id="statusText">활성화됨</strong></div>
+      <div class="stats">
+        <span><b id="keywordCount">0</b>키워드</span>
+        <span><b id="userCount">0</b>사용자</span>
+        <span><b id="hiddenCount">0</b>숨김</span>
+      </div>
+    </section>
+
+    <section class="quick-add">
+      <input id="keywordInput" type="text" placeholder="차단 키워드 추가" maxlength="80">
+      <button id="addKeyword" type="button">추가</button>
+    </section>
+
+    <section class="panel">
+      <label class="row"><span><b>뉴스 필터</b><small>제목·목록 키워드 숨김</small></span><input data-setting="newsFilterEnabled" type="checkbox"></label>
+      <label class="row indent"><span><b>기사 본문까지 분석</b><small>화면 근처 기사만 확인</small></span><input data-setting="deepScanEnabled" type="checkbox"></label>
+      <label class="row"><span><b>댓글 사용자 차단</b><small>작성자 영역 우클릭</small></span><input data-setting="commentBlockEnabled" type="checkbox"></label>
+      <label class="row"><span><b>요소 직접 숨기기</b><small>원치 않는 영역 제거</small></span><input data-setting="cleanerEnabled" type="checkbox"></label>
+      <label class="row"><span><b>미니멀 홈</b><small>검색·날씨·증시 중심 화면</small></span><input data-setting="focusHomeEnabled" type="checkbox"></label>
+    </section>
+
+    <button id="pickElement" class="picker" type="button">이 페이지에서 숨길 영역 선택</button>
+
+    <footer>
+      <button id="openOptions" type="button">상세 설정</button>
+      <span>v0.1.0</span>
+    </footer>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
