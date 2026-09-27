@@ -1,0 +1,60 @@
+{
+  "manifest_version": 3,
+  "name": "Naver Focus",
+  "short_name": "Naver Focus",
+  "version": "0.1.0",
+  "description": "네이버 뉴스·댓글·화면을 사용자가 원하는 방식으로 정리하는 개인화 확장 프로그램",
+  "minimum_chrome_version": "121",
+  "permissions": [
+    "storage",
+    "activeTab",
+    "contextMenus"
+  ],
+  "host_permissions": [
+    "https://*.naver.com/*"
+  ],
+  "background": {
+    "service_worker": "src/background.js"
+  },
+  "action": {
+    "default_popup": "src/ui/popup/popup.html",
+    "default_title": "Naver Focus"
+  },
+  "options_page": "src/ui/options/options.html",
+  "icons": {
+    "16": "icons/16.png",
+    "32": "icons/32.png",
+    "48": "icons/48.png",
+    "128": "icons/128.png"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://www.naver.com/*",
+        "https://naver.com/*",
+        "https://news.naver.com/*",
+        "https://n.news.naver.com/*",
+        "https://media.naver.com/*",
+        "https://m.news.naver.com/*",
+        "https://search.naver.com/*",
+        "https://m.search.naver.com/*"
+      ],
+      "css": [
+        "src/content.css"
+      ],
+      "js": [
+        "src/core/constants.js",
+        "src/core/storage.js",
+        "src/core/dom-bus.js",
+        "src/core/ui.js",
+        "src/cleaner/area-picker.js",
+        "src/comments/comment-blocker.js",
+        "src/news/news-filter.js",
+        "src/home/focus-home.js",
+        "src/content-entry.js"
+      ],
+      "run_at": "document_start",
+      "all_frames": false
+    }
+  ]
+}
