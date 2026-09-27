@@ -99,6 +99,41 @@
     await chrome.storage.local.set({ [NF.KEYS.recentBlocks]: next });
   }
 
+  async function getRecentBlocks() {
+    const data = await chrome.storage.local.get({ [NF.KEYS.recentBlocks]: [] });
+    return Array.isArray(data[NF.KEYS.recentBlocks]) ? data[NF.KEYS.recentBlocks] : [];
+  }
+
+  async function clearRecentBlocks() {
+    await chrome.storage.local.set({ [NF.KEYS.recentBlocks]: [] });
+  }
+
+  async function getArticleCache() {
+    const data = await chrome.storage.local.get({ [NF.KEYS.articleCache]: {} });
+    const stored = data[NF.KEYS.articleCache];
+    return stored && typeof stored === "object" ? stored : {};
+  }
+
+  async function setArticleCache(cache) {
+    await chrome.storage.local.set({
+      [NF.KEYS.articleCache]: cache && typeof cache === "object" ? cache : {}
+    });
+  }
+
+  async function clearArticleCache() {
+    await setArticleCache({});
+  }
+
+  async function resetAll() {
+    const next = cloneDefaults();
+    await chrome.storage.local.set({
+      [NF.KEYS.settings]: next,
+      [NF.KEYS.recentBlocks]: [],
+      [NF.KEYS.articleCache]: {}
+    });
+    return next;
+  }
+
   NF.storage = Object.freeze({
     getSettings,
     patchSettings,
@@ -109,6 +144,12 @@
     removeBlockedUser,
     addHiddenSelector,
     removeHiddenSelector,
-    addRecentBlock
+    addRecentBlock,
+    getRecentBlocks,
+    clearRecentBlocks,
+    getArticleCache,
+    setArticleCache,
+    clearArticleCache,
+    resetAll
   });
 })();

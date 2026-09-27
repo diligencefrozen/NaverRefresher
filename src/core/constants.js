@@ -1,11 +1,18 @@
 (() => {
   const NF = globalThis.NaverFocus = globalThis.NaverFocus || {};
 
-  NF.VERSION = "0.1.0";
+  NF.VERSION = "9.1.1.2026";
   NF.KEYS = Object.freeze({
     settings: "nf.settings.v1",
     articleCache: "nf.articleCache.v1",
     recentBlocks: "nf.recentBlocks.v1"
+  });
+
+  NF.MESSAGE_TYPES = Object.freeze({
+    fetchArticle: "NF_FETCH_ARTICLE",
+    ping: "NF_PING",
+    startPicker: "NF_START_PICKER",
+    hideContextTarget: "NF_HIDE_CONTEXT_TARGET"
   });
 
   NF.DEFAULT_SETTINGS = Object.freeze({
@@ -17,6 +24,7 @@
     commentHoverHintEnabled: true,
     commentRightClickEnabled: true,
     cleanerEnabled: true,
+    hideJunkLinks: false,
     focusHomeEnabled: false,
     blockedKeywords: [],
     blockedUsers: [],

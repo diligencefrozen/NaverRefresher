@@ -36,13 +36,13 @@
   });
 
   chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-    if (message?.type === "NF_PING") {
+    if (message?.type === NF.MESSAGE_TYPES.ping) {
       sendResponse({ ok: true, version: NF.VERSION, host: location.hostname });
       return false;
     }
-    if (message?.type === "NF_START_PICKER") {
-      NF.cleaner?.startPicker?.();
-      sendResponse({ ok: true });
+    if (message?.type === NF.MESSAGE_TYPES.startPicker) {
+      const started = NF.cleaner?.startPicker?.() === true;
+      sendResponse({ ok: started, error: started ? null : "PICKER_UNAVAILABLE" });
       return false;
     }
     return undefined;

@@ -8,6 +8,7 @@
   let lastContextTarget = null;
   let pickerActive = false;
   let pickerTarget = null;
+  let pickerCommitting = false;
 
   const escapeAttr = (value) => String(value || "").replace(/\\/g, "\\\\").replace(/"/g, '\\"');
 
@@ -125,16 +126,25 @@
   }
 
   async function hideTarget(target) {
-    if (!(target instanceof Element)) return;
-    if (target.closest?.("[data-nf-owned]")) return;
+    if (!(target instanceof Element) || target.closest?.("[data-nf-owned]")) return false;
     const selector = buildSelector(target);
     if (!selector) {
       NF.ui.toast("영역을 숨기지 못했습니다", "안정적인 선택자를 만들 수 없습니다.");
-      return;
+      return false;
     }
-    settings = await NF.storage.addHiddenSelector(location.hostname, selector);
-    applyHiddenSelectors();
-    NF.ui.toast("영역을 숨겼습니다", selector);
+    try {
+      const nextSettings = await NF.storage.addHiddenSelector(location.hostname, selector);
+      const saved = nextSettings.hiddenSelectorsByHost?.[location.hostname]?.includes(selector);
+      if (!saved) throw new Error("SELECTOR_NOT_SAVED");
+      settings = nextSettings;
+      applyHiddenSelectors();
+      NF.ui.toast("영역을 숨겼습니다", selector);
+      return true;
+    } catch (error) {
+      console.warn("[Naver Focus] Failed to save hidden area", error);
+      NF.ui.toast("영역을 저장하지 못했습니다", "선택 상태를 유지했습니다. 다시 클릭해 주세요.");
+      return false;
+    }
   }
 
   function ensureOverlay() {
@@ -164,6 +174,7 @@
   function stopPicker() {
     pickerActive = false;
     pickerTarget = null;
+    pickerCommitting = false;
     document.documentElement.classList.remove("nf-picker-active");
     document.getElementById(OVERLAY_ID)?.remove();
     document.removeEventListener("mousemove", onPickerMove, true);
@@ -178,13 +189,15 @@
     moveOverlay(target);
   }
 
-  function onPickerClick(event) {
-    if (!pickerTarget) return;
+  async function onPickerClick(event) {
+    if (!pickerTarget || pickerCommitting) return;
     event.preventDefault();
     event.stopImmediatePropagation();
     const target = pickerTarget;
-    stopPicker();
-    void hideTarget(target);
+    pickerCommitting = true;
+    const saved = await hideTarget(target);
+    pickerCommitting = false;
+    if (saved) stopPicker();
   }
 
   function onPickerKey(event) {
@@ -195,13 +208,14 @@
   }
 
   function startPicker() {
-    if (!settings?.enabled || !settings?.cleanerEnabled || pickerActive) return;
+    if (!settings?.enabled || !settings?.cleanerEnabled || pickerActive) return false;
     pickerActive = true;
     document.documentElement.classList.add("nf-picker-active");
     document.addEventListener("mousemove", onPickerMove, true);
     document.addEventListener("click", onPickerClick, true);
     document.addEventListener("keydown", onPickerKey, true);
     NF.ui.toast("숨길 영역을 선택하세요", "마우스로 가리킨 뒤 클릭 · Esc로 취소");
+    return true;
   }
 
   document.addEventListener("contextmenu", (event) => {
@@ -212,21 +226,22 @@
   }, true);
 
   chrome.runtime.onMessage.addListener((message) => {
-    if (message?.type === "NF_HIDE_CONTEXT_TARGET") {
+    if (message?.type === NF.MESSAGE_TYPES.hideContextTarget) {
       if (lastContextTarget?.isConnected) void hideTarget(lastContextTarget);
       else NF.ui.toast("영역을 찾지 못했습니다", "다시 우클릭한 뒤 시도해 주세요.");
     }
-    if (message?.type === "NF_START_PICKER") startPicker();
   });
 
   NF.cleaner = Object.freeze({
     async init(initialSettings) {
       settings = initialSettings;
       applyHiddenSelectors();
+      NF.junkLinks?.init?.(initialSettings);
     },
     update(nextSettings) {
       settings = nextSettings;
       applyHiddenSelectors();
+      NF.junkLinks?.update?.(nextSettings);
     },
     startPicker,
     buildSelector

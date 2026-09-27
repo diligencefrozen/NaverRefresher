@@ -1,24 +1,9 @@
-const SETTINGS_KEY = "nf.settings.v1";
-const DEFAULT_SETTINGS = {
-  enabled: true,
-  newsFilterEnabled: true,
-  deepScanEnabled: true,
-  articlePageGuardEnabled: true,
-  commentBlockEnabled: true,
-  commentHoverHintEnabled: true,
-  commentRightClickEnabled: true,
-  cleanerEnabled: true,
-  focusHomeEnabled: false,
-  blockedKeywords: [],
-  blockedUsers: [],
-  hiddenSelectorsByHost: {}
-};
+importScripts("core/constants.js", "core/storage.js");
+
+const NF = globalThis.NaverFocus;
 
 chrome.runtime.onInstalled.addListener(async () => {
-  const data = await chrome.storage.local.get({ [SETTINGS_KEY]: null });
-  if (!data[SETTINGS_KEY]) {
-    await chrome.storage.local.set({ [SETTINGS_KEY]: DEFAULT_SETTINGS });
-  }
+  await NF.storage.setSettings(await NF.storage.getSettings());
 
   chrome.contextMenus.removeAll(() => {
     chrome.contextMenus.create({
@@ -40,12 +25,12 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
     return;
   }
   if (info.menuItemId === "nf-hide-element" && tab?.id) {
-    chrome.tabs.sendMessage(tab.id, { type: "NF_HIDE_CONTEXT_TARGET" }).catch(() => {});
+    chrome.tabs.sendMessage(tab.id, { type: NF.MESSAGE_TYPES.hideContextTarget }).catch(() => {});
   }
 });
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-  if (message?.type !== "NF_FETCH_ARTICLE") return undefined;
+  if (message?.type !== NF.MESSAGE_TYPES.fetchArticle) return undefined;
 
   const url = String(message.url || "");
   if (!/^https:\/\/([a-z0-9-]+\.)*naver\.com\//i.test(url)) {

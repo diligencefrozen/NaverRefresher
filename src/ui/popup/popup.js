@@ -1,30 +1,15 @@
-const KEY = "nf.settings.v1";
-const DEFAULTS = {
-  enabled: true,
-  newsFilterEnabled: true,
-  deepScanEnabled: true,
-  articlePageGuardEnabled: true,
-  commentBlockEnabled: true,
-  commentHoverHintEnabled: true,
-  commentRightClickEnabled: true,
-  cleanerEnabled: true,
-  focusHomeEnabled: false,
-  blockedKeywords: [],
-  blockedUsers: [],
-  hiddenSelectorsByHost: {}
-};
+const NF = globalThis.NaverFocus;
 
 let settings = null;
 let activeTab = null;
 
 async function read() {
-  const data = await chrome.storage.local.get({ [KEY]: null });
-  return { ...DEFAULTS, ...(data[KEY] || {}) };
+  return NF.storage.getSettings();
 }
 
 async function patch(patchValue) {
   settings = { ...settings, ...patchValue };
-  await chrome.storage.local.set({ [KEY]: settings });
+  settings = await NF.storage.setSettings(settings);
   render();
 }
 
@@ -44,16 +29,14 @@ function render() {
   const host = (() => { try { return new URL(activeTab?.url || "").hostname; } catch (_) { return ""; } })();
   document.getElementById("hiddenCount").textContent = settings.hiddenSelectorsByHost?.[host]?.length || 0;
   document.getElementById("host").textContent = host || "네이버 개인화 필터";
-  document.getElementById("pickElement").disabled = !isNaverUrl(activeTab?.url || "");
+  document.getElementById("pickElement").disabled = !isNaverUrl(activeTab?.url || "") || !settings.enabled || !settings.cleanerEnabled;
 }
 
 async function addKeyword() {
   const input = document.getElementById("keywordInput");
-  const value = input.value.replace(/\s+/g, " ").trim();
-  if (!value) return;
-  const exists = settings.blockedKeywords.some((item) => item.toLocaleLowerCase("ko-KR") === value.toLocaleLowerCase("ko-KR"));
-  if (!exists) await patch({ blockedKeywords: [...settings.blockedKeywords, value] });
+  settings = await NF.storage.addKeyword(input.value);
   input.value = "";
+  render();
 }
 
 async function start() {
@@ -72,8 +55,9 @@ async function start() {
   document.getElementById("openOptions").addEventListener("click", () => chrome.runtime.openOptionsPage());
   document.getElementById("pickElement").addEventListener("click", async () => {
     if (!activeTab?.id) return;
-    await chrome.tabs.sendMessage(activeTab.id, { type: "NF_START_PICKER" }).catch(() => {});
-    window.close();
+    const result = await chrome.tabs.sendMessage(activeTab.id, { type: NF.MESSAGE_TYPES.startPicker }).catch(() => null);
+    if (result?.ok) window.close();
+    else document.getElementById("pickElement").textContent = "요소 숨기기를 켠 뒤 다시 시도하세요";
   });
 }
 

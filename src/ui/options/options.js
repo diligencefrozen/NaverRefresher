@@ -1,34 +1,19 @@
-const KEY = "nf.settings.v1";
-const CACHE_KEY = "nf.articleCache.v1";
-const HISTORY_KEY = "nf.recentBlocks.v1";
-const DEFAULTS = {
-  enabled: true,
-  newsFilterEnabled: true,
-  deepScanEnabled: true,
-  articlePageGuardEnabled: true,
-  commentBlockEnabled: true,
-  commentHoverHintEnabled: true,
-  commentRightClickEnabled: true,
-  cleanerEnabled: true,
-  focusHomeEnabled: false,
-  blockedKeywords: [],
-  blockedUsers: [],
-  hiddenSelectorsByHost: {}
-};
+const NF = globalThis.NaverFocus;
 
 let settings = null;
 let history = [];
 
 async function load() {
-  const data = await chrome.storage.local.get({ [KEY]: null, [HISTORY_KEY]: [] });
-  settings = { ...DEFAULTS, ...(data[KEY] || {}) };
-  history = Array.isArray(data[HISTORY_KEY]) ? data[HISTORY_KEY] : [];
+  [settings, history] = await Promise.all([
+    NF.storage.getSettings(),
+    NF.storage.getRecentBlocks()
+  ]);
   render();
 }
 
 async function save(patch) {
   settings = { ...settings, ...patch };
-  await chrome.storage.local.set({ [KEY]: settings });
+  settings = await NF.storage.setSettings(settings);
   render();
 }
 
@@ -122,11 +107,9 @@ function render() {
 
 async function addKeyword() {
   const input = document.getElementById("keywordInput");
-  const value = input.value.replace(/\s+/g, " ").trim();
-  if (!value) return;
-  const exists = settings.blockedKeywords.some((item) => item.toLocaleLowerCase("ko-KR") === value.toLocaleLowerCase("ko-KR"));
-  if (!exists) await save({ blockedKeywords: [...settings.blockedKeywords, value] });
+  settings = await NF.storage.addKeyword(input.value);
   input.value = "";
+  render();
 }
 
 function exportData() {
@@ -144,8 +127,7 @@ async function importFile(file) {
   const text = await file.text();
   const parsed = JSON.parse(text);
   const incoming = parsed?.settings && typeof parsed.settings === "object" ? parsed.settings : parsed;
-  settings = { ...DEFAULTS, ...incoming };
-  await chrome.storage.local.set({ [KEY]: settings });
+  settings = await NF.storage.setSettings(incoming);
   render();
 }
 
@@ -153,15 +135,15 @@ document.getElementById("enabled").addEventListener("change", (event) => save({ 
 document.querySelectorAll("[data-setting]").forEach((input) => input.addEventListener("change", (event) => save({ [input.dataset.setting]: event.target.checked })));
 document.getElementById("addKeyword").addEventListener("click", addKeyword);
 document.getElementById("keywordInput").addEventListener("keydown", (event) => { if (event.key === "Enter") void addKeyword(); });
-document.getElementById("clearHistory").addEventListener("click", async () => { history = []; await chrome.storage.local.set({ [HISTORY_KEY]: [] }); renderHistory(); });
-document.getElementById("clearCache").addEventListener("click", async () => { await chrome.storage.local.set({ [CACHE_KEY]: {} }); });
+document.getElementById("clearHistory").addEventListener("click", async () => { history = []; await NF.storage.clearRecentBlocks(); renderHistory(); });
+document.getElementById("clearCache").addEventListener("click", async () => { await NF.storage.clearArticleCache(); });
 document.getElementById("exportData").addEventListener("click", exportData);
 document.getElementById("importData").addEventListener("click", () => document.getElementById("importFile").click());
 document.getElementById("importFile").addEventListener("change", (event) => { const file = event.target.files?.[0]; if (file) void importFile(file); event.target.value = ""; });
 document.getElementById("resetAll").addEventListener("click", async () => {
-  settings = { ...DEFAULTS };
+  settings = JSON.parse(JSON.stringify(NF.DEFAULT_SETTINGS));
   history = [];
-  await chrome.storage.local.set({ [KEY]: settings, [HISTORY_KEY]: [], [CACHE_KEY]: {} });
+  await NF.storage.resetAll();
   render();
 });
 
