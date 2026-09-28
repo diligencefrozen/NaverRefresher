@@ -128,36 +128,46 @@
 
 #nf-focus-home {
   position: fixed;
-  top: 12px;
-  left: 12px;
-  right: 12px;
+  inset: 0;
   z-index: 2147483600;
+  overflow: auto;
+  background:
+    radial-gradient(circle at 18% 8%, rgba(3,199,90,.10), transparent 26%),
+    radial-gradient(circle at 84% 18%, rgba(59,130,246,.08), transparent 24%),
+    #fbfcfd;
   color: #111827;
-  pointer-events: none;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", sans-serif;
 }
 
-#nf-focus-home .nf-home-topbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  min-height: 42px;
-  padding: 6px 8px 6px 14px;
-  border: 1px solid rgba(17, 24, 39, .08);
-  border-radius: 14px;
-  background: rgba(255, 255, 255, .9);
-  box-shadow: 0 8px 24px rgba(15, 23, 42, .06);
-  backdrop-filter: blur(12px);
-  pointer-events: auto;
-}
-
-.nf-home-mode { color: #111827; font-size: 13px; letter-spacing: -.02em; }
+.nf-home-shell { min-height: 100%; width: min(1080px, calc(100% - 48px)); margin: 0 auto; display: flex; flex-direction: column; }
+.nf-home-topbar { display: flex; align-items: center; justify-content: space-between; padding: 28px 0; }
+.nf-home-brand { color: #111827; text-decoration: none; font-weight: 900; letter-spacing: -.04em; font-size: 19px; }
+.nf-home-brand span { color: var(--nf-green); }
 .nf-home-topbar nav { display: flex; align-items: center; gap: 8px; }
-.nf-home-topbar nav a, .nf-home-topbar nav button { border: 0; border-radius: 9px; background: transparent; color: #5f6773; font: inherit; font-size: 12px; text-decoration: none; padding: 7px 9px; cursor: pointer; }
+.nf-home-topbar nav a, .nf-home-topbar nav button { border: 0; border-radius: 10px; background: transparent; color: #5f6773; font: inherit; font-size: 13px; text-decoration: none; padding: 9px 11px; cursor: pointer; }
 .nf-home-topbar nav a:hover, .nf-home-topbar nav button:hover { background: #f0f2f4; color: #111827; }
-.nf-home-greeting { color: #374151; font-size: 12px; white-space: nowrap; }
+.nf-home-hero { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 70px 0 44px; }
+.nf-home-kicker { margin-bottom: 15px; color: var(--nf-green); font-size: 13px; font-weight: 800; letter-spacing: .02em; }
+.nf-home-hero h1 { margin: 0 0 30px; color: #101318; font-size: clamp(34px, 5vw, 58px); letter-spacing: -.055em; line-height: 1.06; }
+.nf-home-search { display: flex; width: min(720px, 100%); padding: 7px; border: 1px solid #dfe3e7; border-radius: 22px; background: #fff; box-shadow: 0 18px 50px rgba(15,23,42,.08); }
+.nf-home-search:focus-within { border-color: rgba(3,199,90,.55); box-shadow: 0 18px 50px rgba(3,199,90,.10); }
+.nf-home-search input { flex: 1; min-width: 0; height: 54px; padding: 0 18px; border: 0; outline: 0; background: transparent; color: #111827; font-size: 18px; }
+.nf-home-search button { width: 78px; border: 0; border-radius: 16px; background: var(--nf-green); color: #fff; font-size: 14px; font-weight: 800; cursor: pointer; }
+.nf-home-shortcuts { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 20px; }
+.nf-home-shortcuts a { padding: 9px 12px; border-radius: 999px; color: #68707c; text-decoration: none; font-size: 13px; }
+.nf-home-shortcuts a:hover { background: #eef1f3; color: #111827; }
+.nf-home-cards { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 16px; padding: 10px 0 34px; }
+.nf-home-card { display: flex; flex-direction: column; min-height: 150px; padding: 24px; border: 1px solid #e7eaee; border-radius: 20px; background: rgba(255,255,255,.78); color: #111827; text-decoration: none; box-shadow: 0 10px 30px rgba(15,23,42,.04); backdrop-filter: blur(10px); }
+.nf-home-card:hover { transform: translateY(-1px); border-color: #d7dde2; }
+.nf-home-card-label { color: #8a929e; font-size: 12px; font-weight: 800; }
+.nf-home-card strong { margin-top: 14px; font-size: 18px; line-height: 1.5; }
+.nf-home-card small { margin-top: auto; padding-top: 16px; color: #8a929e; }
+.nf-home-footer { padding: 0 0 28px; color: #9aa1ab; text-align: center; font-size: 11px; }
 
 @media (max-width: 680px) {
-  #nf-focus-home { top: 8px; left: 8px; right: 8px; }
-  .nf-home-greeting { max-width: 150px; overflow: hidden; text-overflow: ellipsis; }
+  .nf-home-shell { width: min(100% - 28px, 1080px); }
+  .nf-home-topbar { padding: 18px 0; }
+  .nf-home-hero { padding-top: 30px; }
+  .nf-home-cards { grid-template-columns: 1fr; }
+  .nf-home-search input { font-size: 16px; }
 }
